@@ -9,8 +9,6 @@ RUN go mod download
 
 COPY *.go .
 
-RUN go build -o /docker-gopher
-
 EXPOSE 4200
 
-CMD [ "/docker-gopher" ]
+CMD [ "go", "run", "main.go" ]

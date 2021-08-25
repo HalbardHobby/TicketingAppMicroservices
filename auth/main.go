@@ -2,20 +2,20 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
 )
 
+func helloWorldHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "Hello, World!")
+}
+
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", helloWorldHandler).Methods("GET")
 
-	http.Handle("/", r)
-	http.ListenAndServe(":4200", nil)
-	fmt.Print("Listening on port 4200!")
-}
-
-func helloWorldHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, World!")
+	log.Print("Listening on port 4200!")
+	log.Fatal(http.ListenAndServe(":4200", r))
 }
