@@ -8,6 +8,11 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
+type SerializableError interface {
+	error
+	Serialize() ErrorResponse
+}
+
 type RequestValidationError struct {
 	Reasons []validator.FieldError
 }
@@ -20,45 +25,49 @@ func (e *RequestValidationError) Error() string {
 	return err.String()
 }
 
+func (e *RequestValidationError) Serialize() ErrorResponse {
+	res := ErrorResponse{}
+	messages := make([]ErrorMessage, 0)
+	for _, r := range e.Reasons {
+		m := ErrorMessage{
+			Field:   r.Field(),
+			Message: r.Error(),
+		}
+		messages = append(messages, m)
+	}
+	res.Errors = messages
+	return res
+}
+
 type JsonFormattingError struct {
 	Reason string
+}
+
+func (e *JsonFormattingError) Serialize() ErrorResponse {
+	res := ErrorResponse{}
+	message := make([]ErrorMessage, 1)
+	message[0] = ErrorMessage{
+		Message: e.Error(),
+	}
+	res.Errors = message
+	return res
 }
 
 func (e *JsonFormattingError) Error() string {
 	return e.Reason
 }
 
-type errorResponse struct {
-	Errors []errorMessage `json:"errors"`
+type ErrorResponse struct {
+	Errors []ErrorMessage `json:"errors"`
 }
 
-type errorMessage struct {
+type ErrorMessage struct {
 	Field   string `json:"field,omitempty"`
 	Message string `json:"message"`
 }
 
-func JsonError(w http.ResponseWriter, e error, code int) {
-	res := errorResponse{}
-	switch err := e.(type) {
-	case *RequestValidationError:
-		messages := make([]errorMessage, 0)
-		for _, r := range err.Reasons {
-			m := errorMessage{
-				Field:   r.Field(),
-				Message: r.Error(),
-			}
-			messages = append(messages, m)
-		}
-		res.Errors = messages
-	case *JsonFormattingError:
-		message := make([]errorMessage, 1)
-		message[0] = errorMessage{
-			Message: err.Error(),
-		}
-		res.Errors = message
-	default:
-		return
-	}
+func JsonError(w http.ResponseWriter, e SerializableError, code int) {
+	res := e.Serialize()
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
