@@ -2,6 +2,7 @@ package errors
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 
@@ -11,6 +12,24 @@ import (
 type SerializableError interface {
 	error
 	Serialize() ErrorResponse
+}
+
+type NotFoundError struct {
+	Reason string
+}
+
+func (e *NotFoundError) Error() string {
+	return e.Reason
+}
+
+func (e *NotFoundError) Serialize() ErrorResponse {
+	res := ErrorResponse{}
+	message := make([]ErrorMessage, 1)
+	message[0] = ErrorMessage{
+		Message: e.Error(),
+	}
+	res.Errors = message
+	return res
 }
 
 type RequestValidationError struct {
@@ -68,6 +87,7 @@ type ErrorMessage struct {
 
 func JsonError(w http.ResponseWriter, e SerializableError, code int) {
 	res := e.Serialize()
+	log.Println(e.Error())
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
