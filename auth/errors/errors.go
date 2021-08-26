@@ -28,25 +28,34 @@ func (e *JsonFormattingError) Error() string {
 	return e.Reason
 }
 
-func JsonError(w http.ResponseWriter, e error, code int) {
-	formattedErr := make(map[string]interface{})
+type errorResponse struct {
+	Errors []errorMessage `json:"errors"`
+}
 
+type errorMessage struct {
+	Field   string `json:"field,omitempty"`
+	Message string `json:"message"`
+}
+
+func JsonError(w http.ResponseWriter, e error, code int) {
+	res := errorResponse{}
 	switch err := e.(type) {
 	case *RequestValidationError:
-		formErrs := make([]interface{}, 0)
+		messages := make([]errorMessage, 0)
 		for _, r := range err.Reasons {
-			m := make(map[string]string)
-			m["message"] = r.Error()
-			m["field"] = r.Field()
-			formErrs = append(formErrs, m)
+			m := errorMessage{
+				Field:   r.Field(),
+				Message: r.Error(),
+			}
+			messages = append(messages, m)
 		}
-		formattedErr["errors"] = formErrs
+		res.Errors = messages
 	case *JsonFormattingError:
-		formErrs := make([]interface{}, 1)
-		m := make(map[string]string)
-		m["message"] = e.Error()
-		formErrs[0] = m
-		formattedErr["errors"] = formErrs
+		message := make([]errorMessage, 1)
+		message[0] = errorMessage{
+			Message: err.Error(),
+		}
+		res.Errors = message
 	default:
 		return
 	}
@@ -54,5 +63,5 @@ func JsonError(w http.ResponseWriter, e error, code int) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(formattedErr)
+	json.NewEncoder(w).Encode(res)
 }
