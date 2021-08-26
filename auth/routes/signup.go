@@ -5,6 +5,7 @@ import (
 
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/data"
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/errors"
+	"github.com/go-playground/validator/v10"
 )
 
 func SignUp(w http.ResponseWriter, r *http.Request) {
@@ -12,22 +13,17 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	err := user.FromJson(r.Body)
 	if err != nil {
-		m := make(map[string]string)
-		m["error"] = err.Error()
-		errors.JsonError(w, m, http.StatusBadRequest)
+		je := new(errors.JsonFormattingError)
+		je.Reason = err.Error()
+		errors.JsonError(w, je, http.StatusBadRequest)
 		return
 	}
 
 	err = user.Validate()
 	if err != nil {
-		// m := make(map[string]string)
-		// for _, fieldErr := range err.(validator.ValidationErrors) {
-		// 	fmt.Println(fieldErr)
-		// 	m[fieldErr.Field()] = fieldErr.Error()
-		// 	fmt.Println(m)
-		// }
-
-		errors.JsonError(w, err.Error(), http.StatusBadRequest)
+		ve := new(errors.RequestValidationError)
+		ve.Reasons = err.(validator.ValidationErrors)
+		errors.JsonError(w, ve, http.StatusBadRequest)
 		return
 	}
 
