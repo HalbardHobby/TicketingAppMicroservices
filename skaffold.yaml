@@ -12,4 +12,3 @@ build:
       context: auth
       docker:
         dockerfile: Dockerfile
-      sync:
