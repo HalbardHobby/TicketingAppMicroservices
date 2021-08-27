@@ -11,15 +11,21 @@ import (
 
 type SerializableError interface {
 	error
+	StatusCode() int
 	Serialize() ErrorResponse
 }
 
 type NotFoundError struct {
 	Reason string
+	Code   int
 }
 
 func (e *NotFoundError) Error() string {
 	return e.Reason
+}
+
+func (e *NotFoundError) StatusCode() int {
+	return e.Code
 }
 
 func (e *NotFoundError) Serialize() ErrorResponse {
@@ -34,6 +40,7 @@ func (e *NotFoundError) Serialize() ErrorResponse {
 
 type RequestValidationError struct {
 	Reasons []validator.FieldError
+	Code    int
 }
 
 func (e *RequestValidationError) Error() string {
@@ -42,6 +49,10 @@ func (e *RequestValidationError) Error() string {
 		err.WriteString(e.Error() + "\n")
 	}
 	return err.String()
+}
+
+func (e *RequestValidationError) StatusCode() int {
+	return e.Code
 }
 
 func (e *RequestValidationError) Serialize() ErrorResponse {
@@ -60,6 +71,15 @@ func (e *RequestValidationError) Serialize() ErrorResponse {
 
 type JsonFormattingError struct {
 	Reason string
+	Code   int
+}
+
+func (e *JsonFormattingError) Error() string {
+	return e.Reason
+}
+
+func (e *JsonFormattingError) StatusCode() int {
+	return e.Code
 }
 
 func (e *JsonFormattingError) Serialize() ErrorResponse {
@@ -72,8 +92,27 @@ func (e *JsonFormattingError) Serialize() ErrorResponse {
 	return res
 }
 
-func (e *JsonFormattingError) Error() string {
+type BadRequestError struct {
+	Reason string
+	Code   int
+}
+
+func (e *BadRequestError) Serialize() ErrorResponse {
+	res := ErrorResponse{}
+	message := make([]ErrorMessage, 1)
+	message[0] = ErrorMessage{
+		Message: e.Error(),
+	}
+	res.Errors = message
+	return res
+}
+
+func (e *BadRequestError) Error() string {
 	return e.Reason
+}
+
+func (e *BadRequestError) StatusCode() int {
+	return e.Code
 }
 
 type ErrorResponse struct {
@@ -85,12 +124,12 @@ type ErrorMessage struct {
 	Message string `json:"message"`
 }
 
-func JsonError(w http.ResponseWriter, e SerializableError, code int) {
+func JsonError(w http.ResponseWriter, e SerializableError) {
 	res := e.Serialize()
 	log.Println(e.Error())
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.WriteHeader(code)
+	w.WriteHeader(e.StatusCode())
 	json.NewEncoder(w).Encode(res)
 }

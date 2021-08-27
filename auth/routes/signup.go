@@ -3,6 +3,7 @@ package routes
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -17,23 +18,31 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	err := user.FromJson(r.Body)
 	if err != nil {
-		je := new(errors.JsonFormattingError)
-		je.Reason = err.Error()
-		errors.JsonError(w, je, http.StatusBadRequest)
+		je := errors.JsonFormattingError{
+			Reason: err.Error(),
+			Code:   http.StatusBadRequest}
+		errors.JsonError(w, &je)
 		return
 	}
 
 	err = user.Validate()
 	if err != nil {
-		ve := new(errors.RequestValidationError)
-		ve.Reasons = err.(validator.ValidationErrors)
-		errors.JsonError(w, ve, http.StatusBadRequest)
+		ve := errors.RequestValidationError{
+			Reasons: err.(validator.ValidationErrors),
+			Code:    http.StatusBadRequest}
+		errors.JsonError(w, &ve)
 		return
 	}
 
 	count, _ := data.UserCollection.CountDocuments(context.TODO(), bson.M{"email": user.Username})
 	if count > 0 {
-		log.Printf("Email '%s' already in use", user.Username)
+		errMessage := fmt.Sprintf("Email '%s' already in use", user.Username)
+		log.Println(errMessage)
+		be := errors.BadRequestError{
+			Reason: errMessage,
+			Code:   400,
+		}
+		errors.JsonError(w, &be)
 		return
 	}
 
