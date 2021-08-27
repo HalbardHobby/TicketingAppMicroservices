@@ -8,8 +8,8 @@ import (
 )
 
 type User struct {
-	Username string `json:"username" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
+	Username string `json:"username" bson:"email" validate:"required,email"`
+	Password string `json:"password" bson:"password" validate:"required,min=6,max=20"`
 }
 
 func (u *User) FromJson(r io.Reader) error {
