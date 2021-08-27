@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/HalbardHobby/TicketingAppMicroservices/auth/data"
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/errors"
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/routes"
 	"github.com/gorilla/mux"
@@ -15,6 +16,8 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	data.ConnectDB()
+
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/users").Subrouter()
 
