@@ -46,6 +46,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.Password = data.HashPassword(user.Password)
 	data.UserCollection.InsertOne(context.TODO(), user)
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
