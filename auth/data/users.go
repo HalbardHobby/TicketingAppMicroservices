@@ -5,11 +5,15 @@ import (
 	"io"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type User struct {
-	Username string `json:"username" bson:"email" validate:"required,email"`
-	Password string `json:"password" bson:"password" validate:"required,min=6,max=20"`
+	Id                 primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Username           string             `json:"username" bson:"email" validate:"required,email"`
+	Password           string             `json:"password" bson:"password" validate:"required,min=6,max=20"`
+	jwt.StandardClaims `json:"-"`
 }
 
 func (u *User) FromJson(r io.Reader) error {
