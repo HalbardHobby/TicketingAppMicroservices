@@ -52,6 +52,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	user.Password = data.HashPassword(user.Password)
 	user.Id = primitive.NewObjectID()
 	data.UserCollection.InsertOne(context.TODO(), user)
+	user.Password = ""
 	log.Printf("Created new User with id: %s and Email: %s", user.Id.Hex(), user.Username)
 
 	// Generate JWT

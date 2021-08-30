@@ -12,7 +12,7 @@ import (
 type User struct {
 	Id                 primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Username           string             `json:"username" bson:"email" validate:"required,email"`
-	Password           string             `json:"password" bson:"password" validate:"required,min=6,max=20"`
+	Password           string             `json:"password,omitempty" bson:"password" validate:"required,min=6,max=20"`
 	jwt.StandardClaims `json:"-"`
 }
 
