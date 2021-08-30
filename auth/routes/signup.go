@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/data"
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/errors"
@@ -55,7 +56,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	// Generate JWT
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, user)
-	token, err := at.SignedString([]byte("asdf"))
+	token, err := at.SignedString([]byte(os.Getenv("JWT_KEY")))
 	if err != nil {
 		log.Println(err.Error())
 		be := errors.BadRequestError{

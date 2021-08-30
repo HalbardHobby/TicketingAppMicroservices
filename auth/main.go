@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/data"
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/errors"
@@ -16,6 +17,11 @@ func notFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	_, present := os.LookupEnv("JWT_KEY")
+	if !present {
+		log.Panic("JWT_KEY environment variable not set")
+	}
+
 	data.ConnectDB()
 
 	r := mux.NewRouter()
