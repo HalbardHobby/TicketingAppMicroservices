@@ -10,7 +10,6 @@ import (
 
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/data"
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/errors"
-	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,24 +17,7 @@ import (
 
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	user := data.User{}
-
-	err := user.FromJson(r.Body)
-	if err != nil {
-		je := errors.JsonFormattingError{
-			Reason: err.Error(),
-			Code:   http.StatusBadRequest}
-		errors.JsonError(w, &je)
-		return
-	}
-
-	err = user.Validate()
-	if err != nil {
-		ve := errors.RequestValidationError{
-			Reasons: err.(validator.ValidationErrors),
-			Code:    http.StatusBadRequest}
-		errors.JsonError(w, &ve)
-		return
-	}
+	user.FromJson(r.Body)
 
 	count, _ := data.UserCollection.CountDocuments(context.TODO(), bson.M{"email": user.Username})
 	if count > 0 {
