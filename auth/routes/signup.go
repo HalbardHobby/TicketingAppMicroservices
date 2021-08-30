@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/data"
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/errors"
-	"github.com/golang-jwt/jwt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -37,9 +35,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	user.Password = ""
 	log.Printf("Created new User with id: %s and Email: %s", user.Id.Hex(), user.Username)
 
-	// Generate JWT
-	at := jwt.NewWithClaims(jwt.SigningMethodHS256, user)
-	token, err := at.SignedString([]byte(os.Getenv("JWT_KEY")))
+	cookie, err := generateAuthenticationCookie(user)
 	if err != nil {
 		log.Println(err.Error())
 		be := errors.BadRequestError{
@@ -48,12 +44,6 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		}
 		errors.JsonError(w, &be)
 		return
-	}
-	// Save on session
-	cookie := &http.Cookie{
-		Name:  "session",
-		Value: token,
-		Path:  "/",
 	}
 
 	http.SetCookie(w, cookie)
