@@ -18,6 +18,7 @@ func CurrentUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(map[string]string{
 			"currentUser": "null"})
+		return
 	}
 
 	payload, err := jwt.ParseWithClaims(tokenCookie.Value, new(data.User), func(t *jwt.Token) (interface{}, error) {
@@ -39,6 +40,7 @@ func CurrentUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(map[string]string{
 			"currentUser": "null"})
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
