@@ -7,6 +7,7 @@ import (
 
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/data"
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/errors"
+	"github.com/HalbardHobby/TicketingAppMicroservices/auth/middleware"
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/routes"
 	"github.com/gorilla/mux"
 )
@@ -33,7 +34,7 @@ func main() {
 	s.HandleFunc("/currentuser", routes.CurrentUser).Methods("GET")
 	s.HandleFunc("/signout", routes.SignOut).Methods("POST")
 
-	s1.Use(routes.ValidateUserInputMiddleware)
+	s1.Use(middleware.ValidateUserInput)
 
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 
