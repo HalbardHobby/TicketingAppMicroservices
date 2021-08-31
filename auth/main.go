@@ -28,13 +28,15 @@ func main() {
 	r := mux.NewRouter()
 	s := r.PathPrefix("/api/users").Subrouter()
 	s1 := s.PathPrefix("/").Subrouter()
+	s2 := s.PathPrefix("/").Subrouter()
 
 	s1.HandleFunc("/signup", routes.SignUp).Methods("POST")
 	s1.HandleFunc("/signin", routes.SignIn).Methods("POST")
-	s.HandleFunc("/currentuser", routes.CurrentUser).Methods("GET")
+	s2.HandleFunc("/currentuser", routes.CurrentUser).Methods("GET")
 	s.HandleFunc("/signout", routes.SignOut).Methods("POST")
 
 	s1.Use(middleware.ValidateUserInput)
+	s2.Use(middleware.GetCurrentUser)
 
 	r.NotFoundHandler = http.HandlerFunc(notFound)
 
