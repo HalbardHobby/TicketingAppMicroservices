@@ -20,12 +20,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	count, _ := data.UserCollection.CountDocuments(context.TODO(), bson.M{"email": user.Username})
 	if count > 0 {
 		errMessage := fmt.Sprintf("Email '%s' already in use", user.Username)
-		log.Println(errMessage)
-		be := errors.BadRequestError{
-			Reason: errMessage,
-			Code:   400,
-		}
-		errors.JsonError(w, &be)
+		errors.BadRequestError(w, errMessage)
 		return
 	}
 
@@ -37,12 +32,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	cookie, err := generateAuthenticationCookie(user)
 	if err != nil {
-		log.Println(err.Error())
-		be := errors.BadRequestError{
-			Reason: err.Error(),
-			Code:   400,
-		}
-		errors.JsonError(w, &be)
+		errors.BadRequestError(w, err.Error())
 		return
 	}
 

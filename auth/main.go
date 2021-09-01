@@ -13,8 +13,7 @@ import (
 )
 
 func notFound(w http.ResponseWriter, r *http.Request) {
-	ne := &errors.NotFoundError{Reason: "Resource not found", Code: http.StatusNotFound}
-	errors.JsonError(w, ne)
+	errors.NotFoundError(w, "Resource not Found")
 }
 
 func main() {

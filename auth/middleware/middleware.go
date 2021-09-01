@@ -43,10 +43,7 @@ func ValidateUserInput(next http.Handler) http.Handler {
 		user := data.User{}
 		err := user.FromJson(reader)
 		if err != nil {
-			je := errors.JsonFormattingError{
-				Reason: err.Error(),
-				Code:   http.StatusBadRequest}
-			errors.JsonError(rw, &je)
+			errors.JsonFormattingError(rw, err.Error())
 			return
 		}
 

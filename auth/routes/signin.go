@@ -3,7 +3,6 @@ package routes
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/HalbardHobby/TicketingAppMicroservices/auth/data"
@@ -19,31 +18,18 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	err := data.UserCollection.FindOne(context.TODO(), bson.M{"email": input.Username}).Decode(&found)
 	if err != nil {
-		be := errors.BadRequestError{
-			Reason: "Email and password do not match",
-			Code:   400,
-		}
-		errors.JsonError(w, &be)
+		errors.BadRequestError(w, "Email and password do not match")
 		return
 	}
 
 	if !data.CheckPasswordHash(found.Password, input.Password) {
-		be := errors.BadRequestError{
-			Reason: "Email and password do not match",
-			Code:   400,
-		}
-		errors.JsonError(w, &be)
+		errors.BadRequestError(w, "Email and password do not match")
 		return
 	}
 
 	cookie, err := generateAuthenticationCookie(*found)
 	if err != nil {
-		log.Println(err.Error())
-		be := errors.BadRequestError{
-			Reason: err.Error(),
-			Code:   400,
-		}
-		errors.JsonError(w, &be)
+		errors.BadRequestError(w, "Email and password do not match")
 		return
 	}
 

@@ -15,29 +15,6 @@ type SerializableError interface {
 	Serialize() ErrorResponse
 }
 
-type NotFoundError struct {
-	Reason string
-	Code   int
-}
-
-func (e *NotFoundError) Error() string {
-	return e.Reason
-}
-
-func (e *NotFoundError) StatusCode() int {
-	return e.Code
-}
-
-func (e *NotFoundError) Serialize() ErrorResponse {
-	res := ErrorResponse{}
-	message := make([]ErrorMessage, 1)
-	message[0] = ErrorMessage{
-		Message: e.Error(),
-	}
-	res.Errors = message
-	return res
-}
-
 type RequestValidationError struct {
 	Reasons []validator.FieldError
 	Code    int
@@ -69,20 +46,12 @@ func (e *RequestValidationError) Serialize() ErrorResponse {
 	return res
 }
 
-type JsonFormattingError struct {
+type RequestError struct {
 	Reason string
 	Code   int
 }
 
-func (e *JsonFormattingError) Error() string {
-	return e.Reason
-}
-
-func (e *JsonFormattingError) StatusCode() int {
-	return e.Code
-}
-
-func (e *JsonFormattingError) Serialize() ErrorResponse {
+func (e *RequestError) Serialize() ErrorResponse {
 	res := ErrorResponse{}
 	message := make([]ErrorMessage, 1)
 	message[0] = ErrorMessage{
@@ -92,26 +61,11 @@ func (e *JsonFormattingError) Serialize() ErrorResponse {
 	return res
 }
 
-type BadRequestError struct {
-	Reason string
-	Code   int
-}
-
-func (e *BadRequestError) Serialize() ErrorResponse {
-	res := ErrorResponse{}
-	message := make([]ErrorMessage, 1)
-	message[0] = ErrorMessage{
-		Message: e.Error(),
-	}
-	res.Errors = message
-	return res
-}
-
-func (e *BadRequestError) Error() string {
+func (e *RequestError) Error() string {
 	return e.Reason
 }
 
-func (e *BadRequestError) StatusCode() int {
+func (e *RequestError) StatusCode() int {
 	return e.Code
 }
 
@@ -122,6 +76,30 @@ type ErrorResponse struct {
 type ErrorMessage struct {
 	Field   string `json:"field,omitempty"`
 	Message string `json:"message"`
+}
+
+func BadRequestError(rw http.ResponseWriter, reason string) {
+	re := &RequestError{
+		Reason: reason,
+		Code:   400,
+	}
+	JsonError(rw, re)
+}
+
+func NotFoundError(rw http.ResponseWriter, reason string) {
+	re := &RequestError{
+		Reason: reason,
+		Code:   404,
+	}
+	JsonError(rw, re)
+}
+
+func JsonFormattingError(rw http.ResponseWriter, reason string) {
+	re := &RequestError{
+		Reason: reason,
+		Code:   400,
+	}
+	JsonError(rw, re)
 }
 
 func JsonError(w http.ResponseWriter, e SerializableError) {
