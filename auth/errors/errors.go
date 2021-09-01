@@ -86,6 +86,14 @@ func BadRequestError(rw http.ResponseWriter, reason string) {
 	JsonError(rw, re)
 }
 
+func NotAuthorizedError(rw http.ResponseWriter, reason string) {
+	re := &RequestError{
+		Reason: reason,
+		Code:   401,
+	}
+	JsonError(rw, re)
+}
+
 func NotFoundError(rw http.ResponseWriter, reason string) {
 	re := &RequestError{
 		Reason: reason,

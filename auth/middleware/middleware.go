@@ -18,8 +18,9 @@ const UserContextKey = "User"
 func GetCurrentUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		tokenCookie, err := r.Cookie("session")
-		if err != nil {
+		if err != nil || tokenCookie == nil {
 			next.ServeHTTP(rw, r)
+			return
 		}
 
 		payload, err := jwt.ParseWithClaims(tokenCookie.Value, new(data.User), func(t *jwt.Token) (interface{}, error) {
@@ -27,10 +28,22 @@ func GetCurrentUser(next http.Handler) http.Handler {
 		})
 		if err != nil {
 			next.ServeHTTP(rw, r)
+			return
 		}
 
 		ctx := context.WithValue(r.Context(), UserContextKey, payload.Claims)
 		next.ServeHTTP(rw, r.WithContext(ctx))
+	})
+}
+
+func RequireAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		currentUser := r.Context().Value(UserContextKey)
+		if currentUser == nil {
+			errors.NotAuthorizedError(rw, "Not Authorized")
+			return
+		}
+		next.ServeHTTP(rw, r)
 	})
 }
 
